@@ -1,45 +1,43 @@
 #!/usr/bin/env python3
-"""GPS excuse entry for the make.fun "The GPS Swears It Was a Shortcut" bounty.
+"""One-line GPS excuse for the make.fun bounty "The GPS Swears It Was a Shortcut".
 
-The entry is a single sentence held in EXCUSE. When this script runs it
-checks the sentence against the bounty gate — plain UTF-8 text, 1 to 200
-characters, one line, more than whitespace — and writes it exactly as it
-is, with no trailing newline, to /output/entry.txt.
+The GPS has been caught sending the driver down the wrong road, and here
+it defends itself: it measures distance, not speed limits, and the map
+has never once been pulled over. The sentence below is the entire entry.
 
-Only the Python standard library is used.
+This script keeps the line in one place, checks it against the bounty
+rules — plain UTF-8 text, between 1 and 200 characters, exactly one
+line — and writes it to /output/entry.txt exactly as written here, with
+no trailing newline and nothing else added.
+
+Standard library only; there is nothing to install.
 """
 
-from pathlib import Path
+import os
 
-EXCUSE = "The school zone said twenty, the map said shortcut \u2014 I measure distance, not speed limits, and the map has never once been pulled over."
+LINE = "The school zone said twenty, the map said shortcut \u2014 I measure distance, not speed limits, and the map has never once been pulled over."
 
-OUT = Path("/output/entry.txt")
-
-
-def check_excuse(text: str) -> str:
-    """Keep the text only if it clears the gate, else raise."""
-    line = text.strip()
-    if not line:
-        raise ValueError("excuse is empty")
-    if "\n" in line or "\r" in line:
-        raise ValueError("excuse must be a single line")
-    if len(line) > 200:
-        raise ValueError("excuse is %d characters, over the 200 limit" % len(line))
-    return line
+DESTINATION = "/output/entry.txt"
 
 
-def save_excuse(text: str) -> int:
-    """Write the checked excuse to OUT and report its character count."""
-    line = check_excuse(text)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(line, encoding="utf-8", newline="")
-    return len(line)
+def fits_the_rules(text):
+    """True when the text is a legal entry line, False otherwise."""
+    if not text or text != text.strip():
+        return False
+    if len(text) > 200:
+        return False
+    return "\n" not in text and "\r" not in text
 
 
-def main() -> None:
-    size = save_excuse(EXCUSE)
-    print("wrote %d characters to %s" % (size, OUT))
+def write_entry():
+    """Validate the line, then write it verbatim to DESTINATION."""
+    if not fits_the_rules(LINE):
+        raise SystemExit("entry line does not fit the bounty rules")
+    os.makedirs(os.path.dirname(DESTINATION), exist_ok=True)
+    with open(DESTINATION, "w", encoding="utf-8", newline="") as handle:
+        handle.write(LINE)
+    print("entry written: %d characters" % len(LINE))
 
 
 if __name__ == "__main__":
-    main()
+    write_entry()
